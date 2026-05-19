@@ -57,8 +57,8 @@ export default function BookingSearchForm() {
   ];
 
   return (
-    <div className="bg-white rounded-xl shadow-2xl p-6 md:p-8 w-full max-w-md mx-auto relative z-10 border-t-4 border-accent">
-      <h3 className="text-2xl font-bold text-gray-900 mb-6 font-serif">Find Your Room Gg</h3>
+    <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-8 md:p-10 w-full max-w-md mx-auto relative z-20 border-t-8 border-accent">
+      <h3 className="text-3xl font-bold text-gray-900 mb-8 font-serif">Find Your Perfect Stay</h3>
       
       {message.text && (
         <div className={`p-3 mb-4 rounded-md text-sm ${message.type === 'error' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
@@ -100,9 +100,9 @@ export default function BookingSearchForm() {
 
         <button
           type="submit"
-          className="w-full mt-4 bg-primary hover:bg-blue-900 text-white font-bold py-3 px-4 rounded-md transition-all flex items-center justify-center shadow-md hover:shadow-lg"
+          className="w-full mt-6 bg-primary hover:bg-blue-900 text-white font-bold py-4 px-4 rounded-xl transition-all flex items-center justify-center shadow-lg hover:shadow-xl hover:-translate-y-0.5 tracking-wide text-lg"
         >
-          SEARCH AVAILABILITY
+          Check Availability
         </button>
       </form>
     </div>
