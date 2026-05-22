@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import Navbar from '../components/Navbar';
 import CapacityFilter from '../components/admin/CapacityFilter';
 import AdminRoomCard from '../components/admin/AdminRoomCard';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -58,8 +57,7 @@ export default function AdminDashboard() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Navbar />
+    <div className="flex flex-col h-full pb-10">
       
       {/* Admin Header */}
       <div className="bg-white border-b border-gray-200 py-8 shadow-sm">
@@ -74,17 +72,18 @@ export default function AdminDashboard() {
               </div>
               <p className="text-gray-500 ml-11">Manage your property's rooms and availability.</p>
             </div>
-            
-            <button 
-              onClick={() => {
-                setEditingRoom(null);
-                setIsAddModalOpen(true);
-              }}
-              className="flex items-center gap-2 bg-primary hover:bg-blue-900 text-white px-5 py-2.5 rounded-lg font-medium transition-colors shadow-sm"
-            >
-              <PlusCircle className="w-5 h-5" />
-              Add New Room
-            </button>
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => {
+                  setEditingRoom(null);
+                  setIsAddModalOpen(true);
+                }}
+                className="flex items-center gap-2 bg-primary hover:bg-blue-900 text-white px-5 py-2.5 rounded-lg font-medium transition-colors shadow-sm"
+              >
+                <PlusCircle className="w-5 h-5" />
+                Add New Room
+              </button>
+            </div>
           </div>
         </div>
       </div>

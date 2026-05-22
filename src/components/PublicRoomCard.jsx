@@ -1,9 +1,28 @@
-import React from 'react';
-import { Users, Bed, Wifi, Coffee, Car, Tag } from 'lucide-react';
+import React, { useState } from 'react';
+import { Users, Bed, Wifi, Coffee, Car, Tag, ChevronLeft, ChevronRight, Image as ImageIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function PublicRoomCard({ room }) {
-  const imageUrl = room.imageUrl || "https://images.unsplash.com/photo-1611892440504-42a792e24d32?q=80&w=2070&auto=format&fit=crop";
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  let images = [];
+  if (room.imageUrls) {
+    images = room.imageUrls.split(';').filter(Boolean);
+  } else if (room.imageUrl) {
+    images = [room.imageUrl];
+  }
+
+  const nextImage = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCurrentImageIndex((prev) => (prev + 1) % images.length);
+  };
+
+  const prevImage = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCurrentImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+  };
   
   // Determine status
   const statut = room.statut?.toLowerCase() || 'unknown';
@@ -35,16 +54,58 @@ export default function PublicRoomCard({ room }) {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow flex flex-col">
       {/* Image Area */}
-      <div className="h-48 bg-gray-200 relative">
-        <img 
-          src={imageUrl} 
-          alt={room.name || "Room"} 
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute top-4 right-4">
+      <div className="h-48 bg-gray-200 relative group overflow-hidden">
+        {images.length > 0 ? (
+          <>
+            <img 
+              src={images[currentImageIndex]} 
+              alt={room.name || "Room"} 
+              className="w-full h-full object-cover transition-transform duration-300"
+            />
+            
+            {/* Arrows (only if multiple images) */}
+            {images.length > 1 && (
+              <>
+                <button 
+                  onClick={prevImage}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/70 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-all z-10"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <button 
+                  onClick={nextImage}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/70 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-all z-10"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+
+                {/* Dots indicator */}
+                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+                  {images.map((_, idx) => (
+                    <div 
+                      key={idx} 
+                      className={`w-1.5 h-1.5 rounded-full transition-all ${idx === currentImageIndex ? 'bg-white w-3' : 'bg-white/60'}`}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+          </>
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">
+            <ImageIcon className="w-12 h-12 opacity-30" />
+          </div>
+        )}
+
+        <div className="absolute top-4 right-4 flex flex-col gap-2 items-end z-20">
           <span className={`text-xs font-bold px-3 py-1 rounded-full shadow-sm border ${statusColor}`}>
             {room.statut || 'Unknown'}
           </span>
+          {room.totalImages > 1 && (
+            <span className="text-xs font-bold px-3 py-1 rounded-full shadow-sm border bg-black/60 text-white border-transparent backdrop-blur-sm">
+              {room.totalImages} Photos
+            </span>
+          )}
         </div>
       </div>
 

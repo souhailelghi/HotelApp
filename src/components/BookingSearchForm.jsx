@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, Users } from 'lucide-react';
+import { motion } from 'framer-motion';
 import DateInput from './DateInput';
 import SelectInput from './SelectInput';
 
@@ -57,54 +58,71 @@ export default function BookingSearchForm() {
   ];
 
   return (
-    <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-8 md:p-10 w-full max-w-md mx-auto relative z-20 border-t-8 border-accent">
-      <h3 className="text-3xl font-bold text-gray-900 mb-8 font-serif">Find Your Perfect Stay</h3>
+    <motion.div 
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+      className="bg-white/80 backdrop-blur-2xl rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-8 md:p-10 w-full max-w-md mx-auto relative z-20 border-t-[6px] border-accent"
+    >
+      <h3 className="text-3xl font-bold text-gray-900 mb-8 font-serif text-center">Find Your Perfect Stay</h3>
       
       {message.text && (
-        <div className={`p-3 mb-4 rounded-md text-sm ${message.type === 'error' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+        <motion.div 
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          className={`p-3 mb-4 rounded-md text-sm ${message.type === 'error' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}
+        >
           {message.text}
-        </div>
+        </motion.div>
       )}
 
-      <form onSubmit={handleSearch} className="space-y-5">
-        <div className="grid grid-cols-2 gap-4">
-          <DateInput
-            id="checkIn"
-            label="Check In"
-            value={formData.checkIn}
-            onChange={handleChange}
-            icon={Calendar}
-            min={new Date().toISOString().split('T')[0]}
-            required
-          />
-          <DateInput
-            id="checkOut"
-            label="Check Out"
-            value={formData.checkOut}
-            onChange={handleChange}
-            icon={Calendar}
-            min={formData.checkIn || new Date().toISOString().split('T')[0]}
-            required
-          />
+      <form onSubmit={handleSearch} className="space-y-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <motion.div whileHover={{ scale: 1.02, y: -2 }} transition={{ type: "spring", stiffness: 400, damping: 25 }} className="w-full">
+            <DateInput
+              id="checkIn"
+              label="Check In"
+              value={formData.checkIn}
+              onChange={handleChange}
+              icon={Calendar}
+              min={new Date().toISOString().split('T')[0]}
+              required
+            />
+          </motion.div>
+          <motion.div whileHover={{ scale: 1.02, y: -2 }} transition={{ type: "spring", stiffness: 400, damping: 25 }} className="w-full">
+            <DateInput
+              id="checkOut"
+              label="Check Out"
+              value={formData.checkOut}
+              onChange={handleChange}
+              icon={Calendar}
+              min={formData.checkIn || new Date().toISOString().split('T')[0]}
+              required
+            />
+          </motion.div>
         </div>
 
-        <SelectInput
-          id="guests"
-          label="Guests"
-          value={formData.guests}
-          onChange={handleChange}
-          options={guestOptions}
-          icon={Users}
-          required
-        />
+        <motion.div whileHover={{ scale: 1.02, y: -2 }} transition={{ type: "spring", stiffness: 400, damping: 25 }}>
+          <SelectInput
+            id="guests"
+            label="Guests"
+            value={formData.guests}
+            onChange={handleChange}
+            options={guestOptions}
+            icon={Users}
+            required
+          />
+        </motion.div>
 
-        <button
+        <motion.button
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
           type="submit"
-          className="w-full mt-6 bg-primary hover:bg-blue-900 text-white font-bold py-4 px-4 rounded-xl transition-all flex items-center justify-center shadow-lg hover:shadow-xl hover:-translate-y-0.5 tracking-wide text-lg"
+          className="w-full mt-8 bg-[#0B2046] hover:bg-[#112d5e] text-white font-bold py-4 px-4 rounded-xl transition-colors flex items-center justify-center shadow-lg text-lg tracking-wide"
         >
           Check Availability
-        </button>
+        </motion.button>
       </form>
-    </div>
+    </motion.div>
   );
 }

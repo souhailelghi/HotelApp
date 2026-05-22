@@ -1,15 +1,19 @@
 import React, { useState } from 'react';
 import { X, Save, AlertCircle, Loader2 } from 'lucide-react';
 import { chambreApi } from '../../api/chambreApi';
+import { uploadApi } from '../../api/uploadApi';
 
 export default function AddRoomModal({ isOpen, onClose, onRoomAdded, initialData = null }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [selectedImageFiles, setSelectedImageFiles] = useState([]);
+  const [imagePreviews, setImagePreviews] = useState([]);
 
   const defaultState = {
     name: '',
     description: '',
     imageUrl: '',
+    imageUrls: '',
     totalImages: 1,
     freeBreakfast: false,
     freeParking: false,
@@ -37,9 +41,18 @@ export default function AddRoomModal({ isOpen, onClose, onRoomAdded, initialData
     if (isOpen) {
       if (initialData) {
         setFormData(initialData);
+        if (initialData.imageUrls) {
+          setImagePreviews(initialData.imageUrls.split(';').filter(Boolean));
+        } else if (initialData.imageUrl) {
+          setImagePreviews([initialData.imageUrl]);
+        } else {
+          setImagePreviews([]);
+        }
       } else {
         setFormData(defaultState);
+        setImagePreviews([]);
       }
+      setSelectedImageFiles([]);
       setError('');
     }
   }, [isOpen, initialData]);
@@ -54,13 +67,39 @@ export default function AddRoomModal({ isOpen, onClose, onRoomAdded, initialData
     }));
   };
 
+  const handleImageChange = (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    const invalidFiles = files.filter(f => !validTypes.includes(f.type));
+    
+    if (invalidFiles.length > 0) {
+      setError('Please upload valid images only (JPG, PNG, or WebP).');
+      return;
+    }
+
+    setSelectedImageFiles(files);
+    setImagePreviews(files.map(f => URL.createObjectURL(f)));
+    setError(''); // Clear error if valid
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
     // Validation
-    if (!formData.name || !formData.description || !formData.imageUrl) {
-      setError('Name, Description, and Image URL are required.');
+    if (!formData.name || !formData.description) {
+      setError('Name and Description are required.');
+      return;
+    }
+    if (!initialData && selectedImageFiles.length === 0) {
+      setError('At least one room image is required.');
+      return;
+    }
+    if (initialData && selectedImageFiles.length === 0 && !formData.imageUrl) {
+      setError('At least one room image is required.');
       return;
     }
     if (formData.capacity < 1 || formData.capacity > 5) {
@@ -74,10 +113,25 @@ export default function AddRoomModal({ isOpen, onClose, onRoomAdded, initialData
 
     setLoading(true);
     try {
+      let finalImageUrl = formData.imageUrl;
+      let finalImageUrls = formData.imageUrls || '';
+      let finalTotalImages = Number(formData.totalImages) || 1;
+      
+      if (selectedImageFiles.length > 0) {
+        const uploadedUrls = await uploadApi.uploadRoomImages(selectedImageFiles);
+        if (uploadedUrls && uploadedUrls.length > 0) {
+          finalImageUrl = uploadedUrls[0];
+          finalImageUrls = uploadedUrls.join(';');
+          finalTotalImages = uploadedUrls.length;
+        }
+      }
+
       // Parse numbers
       const payload = {
         ...formData,
-        totalImages: Number(formData.totalImages),
+        imageUrl: finalImageUrl,
+        imageUrls: finalImageUrls,
+        totalImages: finalTotalImages,
         capacity: Number(formData.capacity),
         singleBeds: Number(formData.singleBeds),
         kingBeds: Number(formData.kingBeds),
@@ -164,15 +218,7 @@ export default function AddRoomModal({ isOpen, onClose, onRoomAdded, initialData
             <div>
               <h3 className="text-lg font-bold text-gray-900 border-b pb-2 mb-4">Media & Status</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Image URL *</label>
-                  <input type="url" name="imageUrl" required value={formData.imageUrl} onChange={handleChange} className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-accent outline-none transition-all" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Total Images</label>
-                  <input type="number" name="totalImages" min="1" value={formData.totalImages} onChange={handleChange} className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-accent outline-none transition-all" />
-                </div>
-                <div>
+                <div className="md:col-span-1">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
                   <select name="statut" value={formData.statut} onChange={handleChange} className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-accent outline-none transition-all bg-white">
                     <option value="Available">Available</option>
@@ -181,6 +227,57 @@ export default function AddRoomModal({ isOpen, onClose, onRoomAdded, initialData
                     <option value="Cleaning">Cleaning</option>
                     <option value="Maintenance">Maintenance</option>
                   </select>
+                </div>
+                
+                <div className="md:col-span-3 mt-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Room Images *</label>
+                  <div className="space-y-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+                      <div className="flex-1">
+                        <input 
+                          type="file" 
+                          multiple
+                          accept=".jpg,.jpeg,.png,.webp"
+                          onChange={handleImageChange}
+                          className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-accent/10 file:text-accent hover:file:bg-accent/20 transition-all cursor-pointer border border-gray-300 rounded-md p-1 bg-white"
+                        />
+                        <p className="mt-1 text-xs text-gray-500">Select multiple JPG, PNG, or WebP images.</p>
+                      </div>
+                      {imagePreviews.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedImageFiles([]);
+                            setImagePreviews([]);
+                            setFormData(prev => ({ ...prev, imageUrl: '', imageUrls: '', totalImages: 0 }));
+                          }}
+                          className="px-3 py-2 bg-red-50 text-red-600 rounded-md hover:bg-red-100 transition-colors text-sm font-medium border border-red-200 whitespace-nowrap self-start sm:self-auto"
+                        >
+                          Clear All
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Image Previews Grid */}
+                    {imagePreviews.length > 0 ? (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        {imagePreviews.map((preview, index) => (
+                          <div key={index} className="relative aspect-video rounded-md overflow-hidden border border-gray-300 shadow-sm">
+                            <img src={preview} alt={`Preview ${index + 1}`} className="w-full h-full object-cover" />
+                            {index === 0 && (
+                              <span className="absolute bottom-0 left-0 bg-accent text-white text-[10px] font-bold px-1.5 py-0.5 rounded-tr-md">
+                                MAIN
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="h-24 rounded-md border-2 border-dashed border-gray-300 flex flex-col items-center justify-center bg-gray-50 text-gray-500">
+                        <span className="text-sm font-medium">No images selected</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>

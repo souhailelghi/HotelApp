@@ -18,7 +18,6 @@ export default function Navbar() {
             <Link to="/" className="hover:text-accent transition-colors">Home</Link>
             <Link to="/rooms" className="hover:text-accent transition-colors">Rooms</Link>
             <Link to="/" className="hover:text-accent transition-colors">Contact</Link>
-            <Link to="/admin" className="hover:text-accent transition-colors">Admin</Link>
           </div>
           <div className="md:hidden flex items-center">
             <button onClick={() => setIsOpen(!isOpen)} className="text-white hover:text-accent focus:outline-none">
@@ -34,7 +33,6 @@ export default function Navbar() {
             <Link to="/" className="block px-3 py-2 rounded-md text-base font-medium hover:text-accent hover:bg-white/5 transition-colors">Home</Link>
             <Link to="/rooms" className="block px-3 py-2 rounded-md text-base font-medium hover:text-accent hover:bg-white/5 transition-colors">Rooms</Link>
             <Link to="/" className="block px-3 py-2 rounded-md text-base font-medium hover:text-accent hover:bg-white/5 transition-colors">Contact</Link>
-            <Link to="/admin" className="block px-3 py-2 rounded-md text-base font-medium hover:text-accent hover:bg-white/5 transition-colors">Admin</Link>
           </div>
         </div>
       )}
