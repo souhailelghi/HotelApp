@@ -15,7 +15,7 @@ export default function Checkout() {
   const [searchParams] = useSearchParams();
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useAuth();
+  const { user, updateProfile, loading: authLoading } = useAuth();
 
   const checkIn = searchParams.get('checkIn');
   const checkOut = searchParams.get('checkOut');
@@ -53,30 +53,50 @@ export default function Checkout() {
     setError('');
 
     try {
-      // 1. Ensure client exists in backend
-      const clientData = {
-        nom: formData.nom,
-        prenom: formData.prenom,
-        email: formData.email,
-        telephone: formData.telephone,
-        motDePasse: "default123"
-      };
-      
-      const newClient = await clientApi.createClient(clientData);
-      
-      if (!newClient || !newClient.idClient) {
-        throw new Error("Failed to create client in backend or missing idClient.");
+      // 1. Get or Create Hotel Client ID
+      let hotelClientId = localStorage.getItem("hotelClientId");
+      let currentClient = null;
+
+      if (!hotelClientId) {
+        // Find existing client by email first
+        const allClients = await clientApi.getClients();
+        const existingClient = allClients.find(c => c.email.toLowerCase() === formData.email.toLowerCase());
+
+        if (existingClient) {
+          hotelClientId = existingClient.idClient || existingClient.id;
+          currentClient = existingClient;
+        } else {
+          // Create the client in HotelApp-Api
+          const newClient = await clientApi.createClient({
+            nom: formData.nom || formData.lastName || user.lastName || "Guest",
+            prenom: formData.prenom || formData.firstName || user.firstName || "User",
+            email: formData.email,
+            motDePasse: "CheckoutProfile123!", // Dummy password for Hotel API mapping
+            telephone: formData.telephone || ""
+          });
+          
+          hotelClientId = newClient.idClient || newClient.id;
+          currentClient = newClient;
+        }
+
+        if (hotelClientId) {
+          localStorage.setItem("hotelClientId", hotelClientId);
+        }
+      } else {
+        currentClient = { idClient: hotelClientId, fromStorage: true };
       }
 
-      // 2. Create Reservation
-      // We format the date exactly as YYYY-MM-DDT00:00:00 to avoid UTC timezone shifts on the backend
+      console.log("Auth user:", user);
+      console.log("Hotel client:", currentClient);
+
+      // Create Reservation
       const formattedDateDebut = `${checkIn}T00:00:00`;
       const formattedDateFin = `${checkOut}T00:00:00`;
       
       const reservationData = {
         dateDebut: formattedDateDebut,
         dateFin: formattedDateFin,
-        idClient: newClient.idClient,
+        idClient: hotelClientId,
         idChambre: roomId
       };
 
@@ -84,15 +104,42 @@ export default function Checkout() {
       const resResult = await reservationApi.createReservation(reservationData);
       console.log("[CHECKOUT] Reservation successful:", resResult);
 
+      // We attach full info for the success page
+      const successData = {
+        ...resResult,
+        clientName: `${formData.firstName || formData.prenom || ''} ${formData.lastName || formData.nom || ''}`.trim(),
+        clientEmail: formData.email,
+        clientPhone: formData.telephone,
+        roomName: room?.name,
+        roomPrice: room?.pricePerNight,
+        roomCapacity: room?.capacity,
+        nights: parseInt(nights, 10),
+        totalPrice: room?.pricePerNight * parseInt(nights, 10),
+        dateDebut: formattedDateDebut,
+        dateFin: formattedDateFin,
+      };
+
       // (Optional) 3. Create fake payment API call if endpoint exists
       // We bypass this for now to prevent 404 since /api/Paiements was not explicitly built in previous steps.
 
       // 4. Navigate to success. When the user navigates back, the cache-buster in chambreApi ensures a fresh room list.
-      navigate('/reservation-success', { replace: true });
+      navigate('/reservation-success', { replace: true, state: { reservation: successData } });
 
     } catch (err) {
-      console.error(err.response?.data || err);
-      setError("Failed to complete reservation. Please try again.");
+      console.error("Checkout Error:", err.response?.data || err);
+      let backendError = "Failed to complete reservation. Please try again.";
+      
+      if (err.response?.data) {
+        if (typeof err.response.data === 'string') {
+          backendError = err.response.data;
+        } else if (err.response.data.message) {
+          backendError = err.response.data.message;
+        } else {
+          backendError = JSON.stringify(err.response.data);
+        }
+      }
+      
+      setError(`Error: ${backendError}`);
     } finally {
       setLoading(false);
     }

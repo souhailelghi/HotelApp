@@ -9,12 +9,14 @@ import AdminLayout from './layouts/AdminLayout';
 import BookingNotifications from './pages/admin/BookingNotifications';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminLogin from './pages/AdminLogin';
+import AdminData from './pages/admin/AdminData';
 import MyReservations from './pages/MyReservations';
 import Contact from './pages/Contact';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Profile from './pages/Profile';
 import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
 
 // Placeholders for demo
 const PlaceholderPage = ({ title }) => (
@@ -31,14 +33,16 @@ function App() {
         <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/search" element={<SearchResults />} />
-        <Route path="/checkout/:roomId" element={<Checkout />} />
         <Route path="/rooms" element={<Rooms />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/my-reservations" element={<MyReservations />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/reservation-success" element={<ReservationSuccess />} />
+        
+        {/* Protected Customer Routes */}
+        <Route path="/checkout/:roomId" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
+        <Route path="/my-reservations" element={<ProtectedRoute><MyReservations /></ProtectedRoute>} />
+        <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+        <Route path="/reservation-success" element={<ProtectedRoute><ReservationSuccess /></ProtectedRoute>} />
         <Route path="/admin" element={<AdminLogin />} />
         
         {/* Admin Protected Routes */}
@@ -50,7 +54,7 @@ function App() {
                 <Routes>
                   <Route path="dashboard" element={<AdminDashboard />} />
                   <Route path="rooms" element={<AdminDashboard />} />
-                  <Route path="data" element={<PlaceholderPage title="Data Insights" />} />
+                  <Route path="data" element={<AdminData />} />
                   <Route path="notifications" element={<BookingNotifications />} />
                 </Routes>
               </AdminLayout>

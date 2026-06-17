@@ -68,11 +68,14 @@ export default function Register() {
     setIsSubmitting(false);
     
     if (res.success) {
+      if (res.loginFailed) {
+        setErrors({ form: 'Account created successfully. Please sign in.' });
+        setTimeout(() => navigate('/login', { replace: true }), 2500);
+        return;
+      }
+
       setSuccess(true);
       
-      // Auto login after successful registration
-      await login(formData.email, formData.password);
-
       setTimeout(() => {
         const pendingBookingStr = localStorage.getItem('pendingBooking');
         if (pendingBookingStr) {
@@ -81,7 +84,7 @@ export default function Register() {
           const { roomId, checkIn, checkOut, guests, nights, room } = pendingBooking;
           navigate(`/checkout/${roomId}?checkIn=${checkIn}&checkOut=${checkOut}&guests=${guests}&nights=${nights}`, { state: { room }, replace: true });
         } else {
-          navigate('/login');
+          navigate('/', { replace: true });
         }
       }, 3000);
     } else {

@@ -1,14 +1,16 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Bed, Database, Bell, LogOut, Menu, X } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 export default function AdminSidebar({ isOpen, setIsOpen }) {
   const location = useLocation();
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
   const handleLogout = () => {
-    localStorage.removeItem('isAdminLoggedIn');
-    navigate('/admin');
+    logout();
+    navigate('/admin', { replace: true });
   };
 
   const links = [

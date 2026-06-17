@@ -10,6 +10,16 @@ export const reservationApi = {
       throw error;
     }
   },
+
+  getClientReservations: async (idClient) => {
+    try {
+      const response = await axiosClient.get(`/Reservations/client/${idClient}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching client reservations", error);
+      throw error;
+    }
+  },
   
   createReservation: async (data) => {
     try {
@@ -27,6 +37,16 @@ export const reservationApi = {
       return response.data;
     } catch (error) {
       console.error("Error updating reservation", error);
+      throw error;
+    }
+  },
+
+  cancelReservation: async (id) => {
+    try {
+      const response = await axiosClient.put(`/Reservations/cancel/${id}`);
+      return response;
+    } catch (error) {
+      console.error("Error cancelling reservation", error.response?.data || error);
       throw error;
     }
   },

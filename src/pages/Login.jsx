@@ -33,7 +33,9 @@ export default function Login() {
       ...prev, 
       [name]: type === 'checkbox' ? checked : value 
     }));
+    // Clear both field-specific and global form errors when user types
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
+    if (errors.form) setErrors(prev => ({ ...prev, form: '' }));
   };
 
   const handleSubmit = async (e) => {
@@ -48,6 +50,8 @@ export default function Login() {
     
     if (res.success) {
       const pendingBookingStr = localStorage.getItem('pendingBooking');
+      
+      // Customer Login NEVER redirects to Admin dashboard
       if (pendingBookingStr) {
         const pendingBooking = JSON.parse(pendingBookingStr);
         localStorage.removeItem('pendingBooking');
@@ -58,7 +62,7 @@ export default function Login() {
         navigate(from, { replace: true });
       }
     } else {
-      setErrors({ form: res.message || 'Login failed. Please check your credentials.' });
+      setErrors({ form: res.message });
     }
   };
 
