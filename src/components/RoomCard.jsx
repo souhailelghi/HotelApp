@@ -1,9 +1,28 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Users, Bed, Wifi, Coffee } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 export default function RoomCard({ room, checkIn, checkOut, guests, nights }) {
   const imageUrl = room.imageUrl || "https://images.unsplash.com/photo-1611892440504-42a792e24d32?q=80&w=2070&auto=format&fit=crop";
   const totalPrice = room.pricePerNight * nights;
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const handleBookNow = (e) => {
+    if (!user) {
+      e.preventDefault();
+      const pendingBooking = {
+        roomId: room.idChambre,
+        checkIn,
+        checkOut,
+        guests,
+        nights,
+        room
+      };
+      localStorage.setItem('pendingBooking', JSON.stringify(pendingBooking));
+      navigate('/login', { state: { message: "Please login or create an account to continue your reservation." } });
+    }
+  };
 
   return (
     <div className="bg-white rounded-xl shadow-md overflow-hidden flex flex-col md:flex-row border border-gray-100 hover:shadow-lg transition-shadow">
@@ -69,6 +88,7 @@ export default function RoomCard({ room, checkIn, checkOut, guests, nights }) {
           </div>
           
           <Link
+            onClick={handleBookNow}
             to={`/checkout/${room.idChambre}?checkIn=${checkIn}&checkOut=${checkOut}&guests=${guests}&nights=${nights}`}
             state={{ room }}
             className="bg-accent hover:bg-yellow-600 text-white font-bold py-3 px-8 rounded-md transition-colors w-full sm:w-auto text-center shadow-md hover:shadow-lg"

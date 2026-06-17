@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import Navbar from '../components/Navbar';
 import RoomFilters from '../components/RoomFilters';
 import PublicRoomCard from '../components/PublicRoomCard';
@@ -14,7 +15,6 @@ export default function Rooms() {
   const [error, setError] = useState('');
   
   const [capacityFilter, setCapacityFilter] = useState('All');
-  const [statusFilter, setStatusFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
@@ -41,8 +41,9 @@ export default function Rooms() {
       return false;
     }
     
-    // Status check
-    if (statusFilter !== 'All' && room.statut !== statusFilter) {
+    // Only display available rooms
+    const statut = room.statut?.toLowerCase() || '';
+    if (statut !== 'available' && statut !== 'disponible') {
       return false;
     }
     
@@ -50,6 +51,7 @@ export default function Rooms() {
     if (searchQuery && !room.name?.toLowerCase().includes(searchQuery.toLowerCase())) {
       return false;
     }
+  
     
     return true;
   });
@@ -75,8 +77,6 @@ export default function Rooms() {
         <RoomFilters 
           capacityFilter={capacityFilter}
           setCapacityFilter={setCapacityFilter}
-          statusFilter={statusFilter}
-          setStatusFilter={setStatusFilter}
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
         />
@@ -102,11 +102,23 @@ export default function Rooms() {
 
         {/* Grid Layout */}
         {!loading && !error && filteredRooms.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-            {filteredRooms.map(room => (
-              <PublicRoomCard key={room.idChambre} room={room} />
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12"
+          >
+            {filteredRooms.map((room, index) => (
+              <motion.div
+                key={room.idChambre}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: index * 0.1 }}
+              >
+                <PublicRoomCard room={room} />
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         )}
       </main>
     </div>

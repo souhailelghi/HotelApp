@@ -1,7 +1,9 @@
-import React from 'react';
-import { Calendar, User, Phone, Mail, Bed, Moon, Hash } from 'lucide-react';
+import React, { useState } from 'react';
+import { Calendar, User, Phone, Mail, Bed, Moon, Hash, Download, Loader2 } from 'lucide-react';
+import { generateInvoicePdf } from '../../utils/generateInvoicePdf';
 
 export default function BookingNotificationCard({ notification }) {
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const id = notification.idReservation || notification.id || 'N/A';
   const clientName = notification.clientName || 'Unknown Client';
   const email = notification.clientEmail || 'N/A';
@@ -30,7 +32,7 @@ export default function BookingNotificationCard({ notification }) {
               <Hash className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <h3 className="font-bold text-gray-900">Reservation #{id}</h3>
+              <h3 className="font-bold text-gray-900">Reservation #{id !== 'N/A' ? id.slice(0, 8) : id}</h3>
               <p className="text-xs text-gray-500">
                 {new Date(notification.createdAt || notification.dateReservation || new Date()).toLocaleString()}
               </p>
@@ -90,6 +92,27 @@ export default function BookingNotificationCard({ notification }) {
           </p>
         </div>
       )}
+
+      {/* Invoice Download Button */}
+      <div className="mt-4 pt-4 border-t border-gray-50 flex justify-end">
+        <button
+          onClick={async () => {
+            try {
+              setIsGeneratingPdf(true);
+              await generateInvoicePdf(notification);
+            } catch (err) {
+              alert("Failed to generate PDF. Please try again.");
+            } finally {
+              setIsGeneratingPdf(false);
+            }
+          }}
+          disabled={isGeneratingPdf}
+          className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 hover:text-primary transition-colors disabled:opacity-50 shadow-sm"
+        >
+          {isGeneratingPdf ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+          Download Invoice
+        </button>
+      </div>
     </div>
   );
 }

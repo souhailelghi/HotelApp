@@ -9,6 +9,12 @@ import AdminLayout from './layouts/AdminLayout';
 import BookingNotifications from './pages/admin/BookingNotifications';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminLogin from './pages/AdminLogin';
+import MyReservations from './pages/MyReservations';
+import Contact from './pages/Contact';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Profile from './pages/Profile';
+import { AuthProvider } from './context/AuthContext';
 
 // Placeholders for demo
 const PlaceholderPage = ({ title }) => (
@@ -20,12 +26,18 @@ const PlaceholderPage = ({ title }) => (
 
 function App() {
   return (
-    <Router>
-      <Routes>
+    <AuthProvider>
+      <Router>
+        <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/search" element={<SearchResults />} />
         <Route path="/checkout/:roomId" element={<Checkout />} />
         <Route path="/rooms" element={<Rooms />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/my-reservations" element={<MyReservations />} />
+        <Route path="/profile" element={<Profile />} />
         <Route path="/reservation-success" element={<ReservationSuccess />} />
         <Route path="/admin" element={<AdminLogin />} />
         
@@ -45,8 +57,9 @@ function App() {
             </ProtectedAdminRoute>
           } 
         />
-      </Routes>
-    </Router>
+        </Routes>
+      </Router>
+    </AuthProvider>
   );
 }
 

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { useParams, useSearchParams, useLocation, useNavigate, Link } from 'react-router-dom';
+import { useParams, useSearchParams, useLocation, useNavigate, Link, Navigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
 import ErrorMessage from '../components/ErrorMessage';
 import { clientApi } from '../api/clientApi';
@@ -14,6 +15,7 @@ export default function Checkout() {
   const [searchParams] = useSearchParams();
   const location = useLocation();
   const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
 
   const checkIn = searchParams.get('checkIn');
   const checkOut = searchParams.get('checkOut');
@@ -26,10 +28,10 @@ export default function Checkout() {
   const [error, setError] = useState('');
 
   const [formData, setFormData] = useState({
-    nom: '',
-    prenom: '',
-    email: '',
-    telephone: '',
+    nom: user?.lastName || '',
+    prenom: user?.firstName || '',
+    email: user?.email || '',
+    telephone: user?.phone || '',
     paymentMethod: 'Credit Card',
     cardName: '',
     cardNumber: '',
@@ -51,19 +53,19 @@ export default function Checkout() {
     setError('');
 
     try {
-      // 1. Create client
+      // 1. Ensure client exists in backend
       const clientData = {
         nom: formData.nom,
         prenom: formData.prenom,
         email: formData.email,
         telephone: formData.telephone,
-        motDePasse: "default123" // As requested since no auth
+        motDePasse: "default123"
       };
       
       const newClient = await clientApi.createClient(clientData);
       
       if (!newClient || !newClient.idClient) {
-        throw new Error("Failed to create client or missing client ID.");
+        throw new Error("Failed to create client in backend or missing idClient.");
       }
 
       // 2. Create Reservation
@@ -75,10 +77,10 @@ export default function Checkout() {
         dateDebut: formattedDateDebut,
         dateFin: formattedDateFin,
         idClient: newClient.idClient,
-        idChambre: parseInt(roomId, 10)
+        idChambre: roomId
       };
 
-      console.log("[CHECKOUT] Submitting reservation:", reservationData);
+      console.log("Reservation payload:", reservationData);
       const resResult = await reservationApi.createReservation(reservationData);
       console.log("[CHECKOUT] Reservation successful:", resResult);
 
@@ -89,7 +91,7 @@ export default function Checkout() {
       navigate('/reservation-success', { replace: true });
 
     } catch (err) {
-      console.error(err);
+      console.error(err.response?.data || err);
       setError("Failed to complete reservation. Please try again.");
     } finally {
       setLoading(false);
@@ -108,6 +110,21 @@ export default function Checkout() {
         </main>
       </div>
     );
+  }
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <Navbar />
+        <main className="flex-grow flex items-center justify-center p-4">
+          <Loader2 className="w-10 h-10 animate-spin text-primary" />
+        </main>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/login" state={{ from: location.pathname + location.search, message: "Please login or create an account before making a reservation." }} replace />;
   }
 
   const totalPrice = room.pricePerNight * parseInt(nights, 10);

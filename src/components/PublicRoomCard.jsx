@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Users, Bed, Wifi, Coffee, Car, Tag, ChevronLeft, ChevronRight, Image as ImageIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 
 export default function PublicRoomCard({ room }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -52,9 +53,12 @@ export default function PublicRoomCard({ room }) {
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow flex flex-col">
+    <motion.div 
+      whileHover={{ y: -5, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)" }}
+      className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col transition-all duration-300"
+    >
       {/* Image Area */}
-      <div className="h-48 bg-gray-200 relative group overflow-hidden">
+      <div className="h-64 bg-gray-200 relative group overflow-hidden">
         {images.length > 0 ? (
           <>
             <img 
@@ -98,9 +102,6 @@ export default function PublicRoomCard({ room }) {
         )}
 
         <div className="absolute top-4 right-4 flex flex-col gap-2 items-end z-20">
-          <span className={`text-xs font-bold px-3 py-1 rounded-full shadow-sm border ${statusColor}`}>
-            {room.statut || 'Unknown'}
-          </span>
           {room.totalImages > 1 && (
             <span className="text-xs font-bold px-3 py-1 rounded-full shadow-sm border bg-black/60 text-white border-transparent backdrop-blur-sm">
               {room.totalImages} Photos
@@ -177,6 +178,6 @@ export default function PublicRoomCard({ room }) {
           )}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

@@ -33,7 +33,7 @@ export default function HeroBookingSection() {
             
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold font-serif tracking-tight leading-tight mb-6 drop-shadow-2xl">
               Dar Diafa <br />
-              <span className="text-accent font-italic">Rabat</span>
+              <span className="text-accent font-italic">rabat</span>
             </h1>
             
             <p className="text-xl md:text-2xl text-gray-100 max-w-2xl mx-auto lg:mx-0 mb-4 font-light drop-shadow-lg leading-relaxed">

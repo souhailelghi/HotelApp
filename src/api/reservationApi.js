@@ -16,7 +16,17 @@ export const reservationApi = {
       const response = await axiosClient.post('/Reservations', data);
       return response.data;
     } catch (error) {
-      console.error("Error creating reservation", error);
+      console.error("Error creating reservation", error.response?.data || error);
+      throw error;
+    }
+  },
+
+  updateReservation: async (id, data) => {
+    try {
+      const response = await axiosClient.put(`/Reservations/${id}`, data);
+      return response.data;
+    } catch (error) {
+      console.error("Error updating reservation", error);
       throw error;
     }
   },

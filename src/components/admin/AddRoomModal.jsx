@@ -31,7 +31,7 @@ export default function AddRoomModal({ isOpen, onClose, onRoomAdded, initialData
     freeCancellationAvailable: false,
     details: '',
     statut: 'Available',
-    idAdmin: 1
+    idAdmin: '3fa85f64-5717-4562-b3fc-2c963f66afa6'
   };
 
   const [formData, setFormData] = useState(defaultState);
