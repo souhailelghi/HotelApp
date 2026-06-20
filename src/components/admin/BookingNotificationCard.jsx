@@ -70,7 +70,7 @@ export default function BookingNotificationCard({ notification }) {
             <div className="text-sm text-gray-600 flex items-center gap-2">
               <span className="font-medium text-gray-800 line-clamp-1">{roomName}</span>
               <span className="text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-500 whitespace-nowrap">Cap: {roomCapacity}</span>
-              {roomPrice > 0 && <span className="text-xs bg-green-50 text-green-700 px-2 py-0.5 rounded border border-green-100">${roomPrice}</span>}
+              {roomPrice > 0 && <span className="text-xs bg-green-50 text-green-700 px-2 py-0.5 rounded border border-green-100">{roomPrice} DH</span>}
             </div>
             <div className="text-sm text-gray-600 flex items-center gap-2">
               <Calendar className="w-3.5 h-3.5 text-gray-400" />

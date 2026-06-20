@@ -83,8 +83,8 @@ export default function RoomCard({ room, checkIn, checkOut, guests, nights }) {
         <div className="flex flex-col sm:flex-row justify-between items-end sm:items-center mt-4 pt-4 border-t border-gray-100">
           <div className="mb-4 sm:mb-0">
             <p className="text-sm text-gray-500">Price for {nights} night{nights > 1 ? 's' : ''}</p>
-            <p className="text-3xl font-bold text-gray-900">${totalPrice}</p>
-            <p className="text-xs text-gray-400">${room.pricePerNight} / night</p>
+            <p className="text-3xl font-bold text-gray-900">{totalPrice} DH</p>
+            <p className="text-xs text-gray-400">{room.pricePerNight} DH / night</p>
           </div>
           
           <Link

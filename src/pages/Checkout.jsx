@@ -9,6 +9,8 @@ import GuestInfoForm from '../components/checkout/GuestInfoForm';
 import FakePaymentForm from '../components/checkout/FakePaymentForm';
 import BookingSummary from '../components/checkout/BookingSummary';
 import { Loader2 } from 'lucide-react';
+import { calculateReservationTotals } from '../utils/priceUtils';
+import { sendReservationSuccessEmail } from '../services/emailNotificationService';
 
 export default function Checkout() {
   const { roomId } = useParams();
@@ -100,24 +102,30 @@ export default function Checkout() {
         idChambre: roomId
       };
 
+      console.log("[RESERVATION] Creating reservation...");
       console.log("Reservation payload:", reservationData);
       const resResult = await reservationApi.createReservation(reservationData);
-      console.log("[CHECKOUT] Reservation successful:", resResult);
+      console.log("[RESERVATION] Reservation created:", resResult);
 
       // We attach full info for the success page
+      const totals = calculateReservationTotals({ nights: parseInt(nights, 10) }, room);
+      
       const successData = {
         ...resResult,
         clientName: `${formData.firstName || formData.prenom || ''} ${formData.lastName || formData.nom || ''}`.trim(),
         clientEmail: formData.email,
         clientPhone: formData.telephone,
         roomName: room?.name,
-        roomPrice: room?.pricePerNight,
+        roomPrice: totals.pricePerNight,
         roomCapacity: room?.capacity,
-        nights: parseInt(nights, 10),
-        totalPrice: room?.pricePerNight * parseInt(nights, 10),
+        nights: totals.nights,
+        totalPrice: totals.totalTTC,
         dateDebut: formattedDateDebut,
         dateFin: formattedDateFin,
       };
+
+      console.log("[EMAIL] Calling sendReservationSuccessEmail...");
+      sendReservationSuccessEmail(successData);
 
       // (Optional) 3. Create fake payment API call if endpoint exists
       // We bypass this for now to prevent 404 since /api/Paiements was not explicitly built in previous steps.
@@ -174,8 +182,6 @@ export default function Checkout() {
     return <Navigate to="/login" state={{ from: location.pathname + location.search, message: "Please login or create an account before making a reservation." }} replace />;
   }
 
-  const totalPrice = room.pricePerNight * parseInt(nights, 10);
-
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
       <Navbar />
@@ -226,7 +232,6 @@ export default function Checkout() {
               checkOut={checkOut} 
               guests={guests} 
               nights={nights} 
-              totalPrice={totalPrice} 
             />
           </div>
 

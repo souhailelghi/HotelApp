@@ -1,8 +1,10 @@
 import React from 'react';
 import { Calendar, Users, Moon, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { calculateReservationTotals, formatDH } from '../../utils/priceUtils';
 
-export default function BookingSummary({ room, checkIn, checkOut, guests, nights, totalPrice }) {
+export default function BookingSummary({ room, checkIn, checkOut, guests, nights }) {
   const imageUrl = room.imageUrl || "https://images.unsplash.com/photo-1611892440504-42a792e24d32?q=80&w=2070&auto=format&fit=crop";
+  const totals = calculateReservationTotals({ nights }, room);
 
   return (
     <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 sticky top-8">
@@ -74,17 +76,21 @@ export default function BookingSummary({ room, checkIn, checkOut, guests, nights
         <div className="space-y-2 mb-6 text-sm text-gray-600">
           <div className="flex justify-between">
             <span>Price per night</span>
-            <span>${room.pricePerNight}</span>
+            <span>{formatDH(totals.pricePerNight)}</span>
           </div>
           <div className="flex justify-between">
-            <span>Taxes & Fees</span>
-            <span>$0.00</span>
+            <span>Subtotal HT</span>
+            <span>{formatDH(totals.subtotal)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>TVA 10%</span>
+            <span>{formatDH(totals.taxes)}</span>
           </div>
         </div>
-
+        
         <div className="flex justify-between items-center p-4 bg-gray-50 rounded-xl border border-gray-200">
-          <span className="font-bold text-gray-900 text-lg">Total</span>
-          <span className="font-bold text-primary text-2xl">${totalPrice}</span>
+          <span className="font-bold text-gray-900 text-lg">Total TTC</span>
+          <span className="font-bold text-primary text-2xl">{formatDH(totals.totalTTC)}</span>
         </div>
       </div>
     </div>

@@ -111,7 +111,7 @@ export default function AdminRoomCard({ room, onEdit, onDelete }) {
           <h3 className="text-xl font-bold font-serif text-gray-900 line-clamp-1">{room.name || "Deluxe Room"}</h3>
           <div className="flex items-center text-primary font-bold">
             <Tag className="w-4 h-4 mr-1" />
-            ${room.pricePerNight}
+            {room.pricePerNight} DH
           </div>
         </div>
 

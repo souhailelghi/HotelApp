@@ -11,6 +11,7 @@ import { chambreApi } from '../api/chambreApi';
 import { clientApi } from '../api/clientApi';
 import { useAuth } from '../context/AuthContext';
 import { generateInvoicePdf } from '../utils/generateInvoicePdf';
+import { calculateReservationTotals, formatDH } from '../utils/priceUtils';
 
 export default function MyReservations() {
   const { user, loading: authLoading } = useAuth();
@@ -154,6 +155,7 @@ export default function MyReservations() {
         roomName: roomDetails?.name || res.roomName,
         roomCapacity: roomDetails?.capacity || res.roomCapacity,
         roomPrice: roomDetails?.pricePerNight || res.roomPrice,
+        roomDetails: roomDetails,
         statut: 'Paid'
       });
     } catch (err) {
@@ -222,13 +224,15 @@ export default function MyReservations() {
     // Identify the associated room from the rooms fetch to get its image
     const roomDetails = rooms.find(r => r.idChambre === res.idChambre || r.id === res.idChambre);
     
-    // Cancellation Rule: BEFORE check-in date
     const checkInDay = new Date(checkInDate);
     checkInDay.setHours(0, 0, 0, 0);
     const isExpired = today >= checkInDay;
     
     const statut = (res.statut || '').toLowerCase();
     const isCancelled = statut === 'cancelled' || statut === 'annulé';
+    
+    // Calculate accurate prices
+    const totals = calculateReservationTotals(res, roomDetails || {});
     
     // Safely slice GUID
     const shortId = resId.length > 8 ? resId.slice(0, 8) : resId;
@@ -246,7 +250,7 @@ export default function MyReservations() {
           {/* Room Image */}
           <div className="md:w-64 h-48 md:h-auto bg-gray-200 relative flex-shrink-0">
             {res.roomImageUrl || roomDetails?.imageUrl ? (
-              <img src={res.roomImageUrl || roomDetails?.imageUrl} alt={res.roomName || roomDetails?.name || "Room"} className="w-full h-full object-cover" />
+              <img src={res.roomImageUrl || roomDetails?.imageUrl} alt={roomDetails?.name || res.roomName || "Room"} className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">
                 <BedDouble className="w-12 h-12 opacity-50" />
@@ -274,7 +278,7 @@ export default function MyReservations() {
                     )}
                   </div>
                   <h3 className="text-xl font-bold font-serif text-gray-900">
-                    {res.roomName || roomDetails?.name || `Room #${res.idChambre || 'Unknown'}`}
+                    {roomDetails?.name || res.roomName || `Room #${res.idChambre || 'Unknown'}`}
                   </h3>
                 </div>
 
@@ -303,7 +307,7 @@ export default function MyReservations() {
                       <Moon className="w-4 h-4" />
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900">{res.nights || 1} Nights</p>
+                      <p className="font-medium text-gray-900">{totals.nights} Nights</p>
                     </div>
                   </div>
                 </div>
@@ -311,12 +315,22 @@ export default function MyReservations() {
 
               {/* Price Block */}
               <div className="lg:text-right bg-gray-50 p-4 rounded-xl lg:bg-transparent lg:p-0 flex flex-row lg:flex-col justify-between items-center lg:items-end">
-                <div className="text-sm text-gray-500 mb-1">Total Amount</div>
-                <div className="text-2xl font-bold text-gray-900">
-                  ${res.roomPrice ? (res.roomPrice * (res.nights || 1)) : (res.prixTotal || res.totalPrice || 0)}
+                <div className="text-sm text-gray-500 mb-1 w-full flex justify-between lg:justify-end lg:gap-3">
+                  <span>Subtotal HT:</span> 
+                  <span className="font-medium text-gray-700">{formatDH(totals.subtotal)}</span>
+                </div>
+                <div className="text-sm text-gray-500 mb-2 w-full flex justify-between lg:justify-end lg:gap-3">
+                  <span>TVA 10%:</span> 
+                  <span className="font-medium text-gray-700">{formatDH(totals.taxes)}</span>
+                </div>
+                <div className="w-full flex justify-between lg:justify-end items-end gap-4">
+                  <div className="text-sm text-gray-500 mb-1 lg:hidden">Total TTC</div>
+                  <div className="text-2xl font-bold text-gray-900">
+                    {formatDH(totals.totalTTC)}
+                  </div>
                 </div>
                 {!isCancelled && (
-                  <div className="text-xs font-semibold text-green-600 bg-green-100 px-2 py-0.5 rounded mt-1 inline-flex items-center gap-1">
+                  <div className="text-xs font-semibold text-green-600 bg-green-100 px-2 py-0.5 rounded mt-2 inline-flex items-center justify-center gap-1 w-full lg:w-auto">
                     <CheckCircle className="w-3 h-3" /> Paid
                   </div>
                 )}

@@ -1,4 +1,5 @@
 import jsPDF from 'jspdf';
+import { calculateReservationTotals, formatDH } from './priceUtils';
 
 export const generateInvoicePdf = async (notification) => {
   try {
@@ -14,20 +15,9 @@ export const generateInvoicePdf = async (notification) => {
     const checkInStr = notification.dateDebut ? new Date(notification.dateDebut).toLocaleDateString() : 'N/A';
     const checkOutStr = notification.dateFin ? new Date(notification.dateFin).toLocaleDateString() : 'N/A';
     
-    let nights = notification.nights || 1;
-    if (!notification.nights && notification.dateDebut && notification.dateFin) {
-      const start = new Date(notification.dateDebut);
-      const end = new Date(notification.dateFin);
-      const diff = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
-      if (diff > 0) nights = diff;
-    }
-    
-    const totalPrice = notification.prixTotal || notification.totalPrice || 0;
-    // If roomPrice isn't provided directly, try to compute it or fallback to the provided roomPrice
-    let pricePerNight = notification.roomPrice || 0;
-    if (!pricePerNight && totalPrice > 0) {
-        pricePerNight = (totalPrice / nights).toFixed(2);
-    }
+    const totals = calculateReservationTotals(notification, notification);
+    const nights = totals.nights;
+    const pricePerNight = totals.pricePerNight;
     
     const currentDate = new Date().toLocaleDateString();
 
@@ -115,16 +105,15 @@ export const generateInvoicePdf = async (notification) => {
 
     // Table Row Text
     pdf.setTextColor(17, 24, 39); // gray-900
-    // Long room names might bleed out, but we'll assume it fits in 60mm space
     pdf.text(roomName.substring(0, 35), 25, 110);
     
     pdf.setTextColor(75, 85, 99); // gray-600
     pdf.text(String(roomCapacity), 90, 110, { align: "center" });
     pdf.text(String(nights), 120, 110, { align: "center" });
-    pdf.text("$" + Number(pricePerNight).toFixed(2), 155, 110, { align: "right" });
+    pdf.text(formatDH(pricePerNight), 155, 110, { align: "right" });
     
-    pdf.setTextColor(17, 24, 39); // gray-900
-    pdf.text("$" + Number(totalPrice).toFixed(2), 185, 110, { align: "right" });
+    pdf.setFont("helvetica", "bold");
+    pdf.text(formatDH(totals.subtotal), 185, 110, { align: "right" });
     
     // Table Row Bottom Line
     pdf.setDrawColor(229, 231, 235);
@@ -138,19 +127,20 @@ export const generateInvoicePdf = async (notification) => {
 
     pdf.setFontSize(10);
     pdf.setTextColor(75, 85, 99);
-    pdf.text("Subtotal:", 125, 135);
-    pdf.text("$" + Number(totalPrice).toFixed(2), 185, 135, { align: "right" });
+    pdf.text("Subtotal HT:", 125, 135);
+    pdf.text(formatDH(totals.subtotal), 185, 135, { align: "right" });
     
-    pdf.text("Tax (0%):", 125, 142);
-    pdf.text("$0.00", 185, 142, { align: "right" });
+    pdf.text("TVA 10%:", 125, 142);
+    pdf.text(formatDH(totals.taxes), 185, 142, { align: "right" });
     
     pdf.setDrawColor(209, 213, 219); // gray-300
     pdf.line(125, 147, 185, 147);
     
     pdf.setFontSize(12);
     pdf.setTextColor(17, 24, 39);
-    pdf.text("Total Amount:", 125, 154);
-    pdf.text("$" + Number(totalPrice).toFixed(2), 185, 154, { align: "right" });
+    pdf.text("Total TTC:", 125, 154);
+    pdf.setFontSize(14);
+    pdf.text(formatDH(totals.totalTTC), 185, 154, { align: "right" });
 
     // --- Footer ---
     pdf.setDrawColor(229, 231, 235);
