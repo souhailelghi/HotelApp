@@ -31,7 +31,7 @@ export const sendReservationSuccessEmail = async (reservationData) => {
     status: 'Paid'
   };
 
-  console.log("[EMAIL] Template params:", templateParams);
+  console.log("[EMAIL] Real reservation email payload:", templateParams);
 
   try {
     const result = await emailjs.send(
@@ -41,11 +41,9 @@ export const sendReservationSuccessEmail = async (reservationData) => {
       publicKey
     );
     console.log("[EMAIL] Email sent successfully:", result);
-    alert("Reservation email sent successfully.");
   } catch (error) {
     console.error("[EMAIL] Failed to send email:", error);
     console.error("[EMAIL] Error status:", error?.status);
     console.error("[EMAIL] Error text:", error?.text);
-    alert(`Email failed: ${error?.text || error?.message || "Unknown error"}`);
   }
 };

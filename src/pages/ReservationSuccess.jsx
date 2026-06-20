@@ -5,28 +5,10 @@ import { CheckCircle, Download, Loader2 } from 'lucide-react';
 import { generateInvoicePdf } from '../utils/generateInvoicePdf';
 import { formatDH } from '../utils/priceUtils';
 
-import { sendReservationSuccessEmail } from '../services/emailNotificationService';
-
 export default function ReservationSuccess() {
   const location = useLocation();
   const { reservation } = location.state || {};
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
-
-  const handleTestEmail = async () => {
-    const fakeData = {
-      clientName: "Test User",
-      clientEmail: "test@example.com",
-      clientPhone: "0600000000",
-      roomName: "Test Suite",
-      dateDebut: new Date().toISOString(),
-      dateFin: new Date(Date.now() + 86400000 * 2).toISOString(),
-      nights: 2,
-      totalPrice: 1500,
-      prixTotal: 1500
-    };
-    alert("Sending test email...");
-    await sendReservationSuccessEmail(fakeData);
-  };
 
   const handleDownloadInvoice = async () => {
     if (!reservation) return;
@@ -95,12 +77,6 @@ export default function ReservationSuccess() {
                 Download Invoice
               </button>
             )}
-            <button 
-              onClick={handleTestEmail}
-              className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-6 rounded-lg transition-colors shadow-md text-center"
-            >
-              Test Email
-            </button>
             <Link to="/my-reservations" className="bg-primary hover:bg-blue-900 text-white font-bold py-3 px-6 rounded-lg transition-colors shadow-md text-center">
               View My Reservations
             </Link>
